@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Client Feedback System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+  <div id="app" class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
+    <h1 class="text-3xl font-bold text-blue-600 mb-8">Feedback System</h1>
+    
+    <div id="login-form" class="space-y-4">
+      <input id="email" type="email" placeholder="Email" class="w-full p-3 border rounded">
+      <input id="password" type="password" placeholder="Password" class="w-full p-3 border rounded">
+      <button onclick="login()" class="w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600">Login</button>
+      <p>Default: admin@feedback.com / admin123</p>
+    </div>
+    
+    <div id="dashboard" class="hidden">
+      <h2 id="welcome" class="text-2xl mb-4"></h2>
+      <select id="category" class="p-2 border rounded mb-4">
+        <option>Loading...</option>
+      </select>
+      <input id="rating" type="number" min="1" max="5" class="p-2 border rounded mb-4" placeholder="Rating 1-5">
+      <textarea id="comment" class="w-full p-3 border rounded mb-4" placeholder="Comment"></textarea>
+      <button onclick="submitFeedback()" class="bg-green-500 text-white p-3 rounded mr-2">Submit</button>
+      <button onclick="loadFeedback()" class="bg-gray-500 text-white p-3 rounded">Refresh Feedback</button>
+      <div id="feedback-list" class="mt-8 space-y-4"></div>
+    </div>
+  </div>
+
+  <script>
+    let token = '';
+    let role = '';
+
+    async function api(url, options = {}) {
+      const res = await fetch('http://localhost:3001' + url, {
+        headers: { 'Content-Type': 'application/json', Authorization: token ? `Bearer ${token}` : '' },
+        ...options
+      });
+      return res.json();
+    }
+
+    async function login() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+      
+      if (data.token) {
+        token = data.token;
+        role = data.role;
+        document.getElementById('welcome').innerText = `Welcome ${role} (${email})`;
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadCategories();
+        loadFeedback();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function loadCategories() {
+      const categories = await api('/api/feedback/categories');
+      const select = document.getElementById('category');
+      select.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+
+    async function submitFeedback() {
+      const category_id = document.getElementById('category').value;
+      const rating = document.getElementById('rating').value;
+      const comment = document.getElementById('comment').value;
+      
+      const data = await api('/api/feedback', {
+        method: 'POST',
+        body: JSON.stringify({ category_id, rating, comment })
+      });
+      
+      if (data.id) {
+        alert('Feedback submitted!');
+        loadFeedback();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function loadFeedback() {
+      const feedback = await api('/api/feedback');
+      document.getElementById('feedback-list').innerHTML = feedback.map(f => `
+        <div class="p-4 border rounded bg-gray-50">
+          <p><strong>Rating:</strong> ${f.rating}/5 | <strong>Category:</strong> ${f.name || f.category_name}</p>
+          <p>${f.comment || 'No comment'}</p>
+          <small>${new Date(f.created_at).toLocaleString()}</small>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
+

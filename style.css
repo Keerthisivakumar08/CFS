@@ -1,0 +1,25 @@
+/* Custom Styles to complement Bootstrap */
+body {
+    background-color: #f8f9fa; /* Light gray background */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+}
+
+.card-header {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* Subtle hover effects for table rows */
+tbody tr:hover {
+    background-color: #f1f3f5 !important;
+    transition: background-color 0.2s ease;
+}

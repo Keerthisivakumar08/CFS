@@ -37,7 +37,14 @@ router.post('/register', [
         console.error('Registration error:', err.message);
         return res.status(500).json({ error: 'Registration failed. Please try again.' });
       }
-      res.status(201).json({ message: 'User registered', userId: this.lastID });
+      const user = { id: this.lastID, email, role: userRole, venue };
+      const token = jwt.sign(
+        user,
+        JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      res.status(201).json({ message: 'User registered', userId: this.lastID, token, user });
     });
   });
 });

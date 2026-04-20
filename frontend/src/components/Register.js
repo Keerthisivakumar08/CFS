@@ -20,8 +20,7 @@ const [email, setEmail] = useState('');
     setLoading(true);
 
     try {
-      await api.post('/auth/register', { email, password, venue, role });
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/register', { email, password, venue, role });
       const { token, user: userData } = response.data;
 
       login(token, userData);

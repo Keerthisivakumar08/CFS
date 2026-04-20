@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
@@ -14,18 +14,32 @@ import {
 } from 'chart.js';
 import './AdminDashboard.css';
 import cateringLogo from '../assets/catering-logo.png';
+import mcdonaldsLogo from '../assets/logos/mcdonalds.svg';
+import kfcLogo from '../assets/logos/kfc.svg';
+import dominosLogo from '../assets/logos/dominos.svg';
+import pizzaHutLogo from '../assets/logos/pizza-hut.svg';
+import burgerKingLogo from '../assets/logos/burger-king.svg';
+import subwayLogo from '../assets/logos/subway.svg';
+import starbucksLogo from '../assets/logos/starbucks.svg';
+import tacoBellLogo from '../assets/logos/taco-bell.svg';
+import dunkinLogo from '../assets/logos/dunkin.svg';
+import popeyesLogo from '../assets/logos/popeyes.svg';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Tooltip, Legend);
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState('feedback');
+  const [activeNav, setActiveNav] = useState('brands');
   const [theme, setTheme] = useState('light');
   const [feedbackData, setFeedbackData] = useState([]);
   const [filter, setFilter] = useState('this_month');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [favoriteFoodIds, setFavoriteFoodIds] = useState([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(false);
+  const [favoriteActionId, setFavoriteActionId] = useState(null);
 
   const notificationItems = [
     { title: 'New Stock Received', time: '2 hours ago', icon: '📦', color: 'green', detail: 'Fresh vegetables and dairy stock has been added to inventory.' },
@@ -63,6 +77,79 @@ export default function AdminDashboard() {
       setIsLoading(false);
     }
   };
+
+  const fetchFavorites = useCallback(async () => {
+    setFavoritesLoading(true);
+    try {
+      const res = await api.get('/favorites');
+      setFavoriteFoodIds(Array.isArray(res.data) ? res.data.map(Number) : []);
+    } catch (err) {
+      console.error('Error fetching favorites:', err);
+    } finally {
+      setFavoritesLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeNav === 'fav' && user) {
+      fetchFavorites();
+    }
+  }, [activeNav, user, fetchFavorites]);
+
+  const toggleFavorite = async (foodId, isCurrentlyFavorite) => {
+    setFavoriteActionId(foodId);
+    try {
+      if (isCurrentlyFavorite) {
+        await api.delete(`/favorites/${foodId}`);
+        setFavoriteFoodIds((prev) => prev.filter((id) => id !== foodId));
+      } else {
+        await api.post('/favorites', { food_id: foodId });
+        setFavoriteFoodIds((prev) => (prev.includes(foodId) ? prev : [...prev, foodId]));
+      }
+    } catch (err) {
+      console.error('Error updating favorite:', err);
+    } finally {
+      setFavoriteActionId(null);
+    }
+  };
+
+  const brands = [
+    { id: 'mcdonalds', name: "McDonald's", logo: mcdonaldsLogo, accent: '#ffbc0d' },
+    { id: 'kfc', name: 'KFC', logo: kfcLogo, accent: '#e4002b' },
+    { id: 'dominos', name: "Domino's Pizza", logo: dominosLogo, accent: '#006491' },
+    { id: 'pizza-hut', name: 'Pizza Hut', logo: pizzaHutLogo, accent: '#ee3124' },
+    { id: 'burger-king', name: 'Burger King', logo: burgerKingLogo, accent: '#f5a623' },
+    { id: 'subway', name: 'Subway', logo: subwayLogo, accent: '#0b8f51' },
+    { id: 'starbucks', name: 'Starbucks', logo: starbucksLogo, accent: '#00704a' },
+    { id: 'taco-bell', name: 'Taco Bell', logo: tacoBellLogo, accent: '#68217a' },
+    { id: 'dunkin', name: 'Dunkin', logo: dunkinLogo, accent: '#ec008c' },
+    { id: 'popeyes', name: 'Popeyes', logo: popeyesLogo, accent: '#f58220' },
+  ];
+
+  const getBrandNameFromComment = (comment = '') => {
+    const match = comment.match(/^\[Brand:\s*([^\]]+)\]/i);
+    return match ? match[1].trim() : null;
+  };
+
+  const getDisplayComment = (comment = '') => comment.replace(/^\[Brand:\s*[^\]]+\]\s*/i, '').trim();
+
+  const feedbackWithBrand = useMemo(
+    () =>
+      feedbackData.map((fb) => ({
+        ...fb,
+        brandName: getBrandNameFromComment(fb.comment || ''),
+        displayComment: getDisplayComment(fb.comment || ''),
+      })),
+    [feedbackData]
+  );
+
+  const visibleFeedback = useMemo(() => {
+    if (!selectedBrand) {
+      return feedbackWithBrand;
+    }
+
+    return feedbackWithBrand.filter((fb) => fb.brandName === selectedBrand.name);
+  }, [feedbackWithBrand, selectedBrand]);
 
   // ── Chart Data Calculations ──
 
@@ -127,6 +214,7 @@ export default function AdminDashboard() {
 
   const navItems = [
     { key: 'home', icon: '🏠', label: 'Home' },
+    { key: 'brands', icon: '🏷️', label: 'Brands' },
     { key: 'food', icon: '🍴', label: 'Food Order' },
     { key: 'fav', icon: '❤️', label: 'Favorite Menu' },
     { key: 'msg', icon: '💬', label: 'Message' },
@@ -199,8 +287,8 @@ export default function AdminDashboard() {
       <section className="recent-feedback-section mt-4">
         <h2 className="section-title">Recent Feedback</h2>
         <div className="feedback-grid">
-          {feedbackData.length > 0 ? (
-            feedbackData.slice(0, 3).map(fb => {
+          {feedbackWithBrand.length > 0 ? (
+            feedbackWithBrand.slice(0, 3).map(fb => {
               const isPositive = fb.rating >= 7;
               return (
                 <div key={fb.id} className={`feedback-card-premium ${isPositive ? 'positive' : 'negative'}`}>
@@ -217,16 +305,52 @@ export default function AdminDashboard() {
                   <div className="fb-rating">
                     {'★'.repeat(Math.ceil(fb.rating / 2))}{'☆'.repeat(5 - Math.ceil(fb.rating / 2))}
                   </div>
-                  <p className="fb-comment">"{fb.comment || 'No comment'}"</p>
+                  {fb.brandName && <span className="fb-brand-tag">{fb.brandName}</span>}
+                  <p className="fb-comment">"{fb.displayComment || 'No comment'}"</p>
                 </div>
               );
             })
           ) : (
             <p className="text-muted">No feedback yet.</p>
           )}
-          {feedbackData.length > 3 && (
+          {feedbackWithBrand.length > 3 && (
             <button className="btn-link" onClick={() => setActiveNav('feedback')}>View all feedback →</button>
           )}
+        </div>
+      </section>
+    </div>
+  );
+
+  const renderBrands = () => (
+    <div className="admin-brand-front-shell">
+      <section className="admin-brand-front-panel">
+        <div className="admin-brand-front-header">
+          <div>
+            <h2 className="admin-brand-front-title">Choose a restaurant and give feedback</h2>
+            <p className="admin-brand-front-subtitle">
+              Any one logo click pannunga, appuram feedback form open aagum.
+            </p>
+          </div>
+        </div>
+
+        <div className="admin-brand-front-grid">
+          {brands.map((brand) => (
+            <button
+              key={brand.id}
+              type="button"
+              className="admin-brand-front-card"
+              style={{ '--brand-accent': brand.accent }}
+              onClick={() => {
+                setSelectedBrand(brand);
+                setActiveNav('feedback');
+              }}
+            >
+              <div className="admin-brand-front-logo-wrap">
+                <img src={brand.logo} alt={brand.name} className="admin-brand-front-logo" />
+              </div>
+              <span className="admin-brand-front-name">{brand.name}</span>
+            </button>
+          ))}
         </div>
       </section>
     </div>
@@ -288,73 +412,109 @@ export default function AdminDashboard() {
     </div>
   );
 
-  const renderFavoriteMenu = () => (
-    <div className="adm-view-container">
-      <div className="menu-grid">
-        {[
-          { name: 'Truffle Mac & Cheese', price: '$24', rating: 4.9, img: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=400' },
-          { name: 'Grilled Salmon', price: '$32', rating: 4.8, img: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400' },
-          { name: 'Wagyu Burger', price: '$28', rating: 4.7, img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400' },
-          { name: 'Avocado Toast', price: '$18', rating: 4.5, img: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400' },
-          { name: 'Chicken Alfredo', price: '$26', rating: 4.8, img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400' },
-          { name: 'Margherita Pizza', price: '$21', rating: 4.6, img: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400' },
-          { name: 'Sushi Platter', price: '$34', rating: 4.9, img: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400' },
-          { name: 'Chocolate Lava Cake', price: '$14', rating: 4.7, img: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400' },
-          { name: 'Pesto Pasta', price: '$23', rating: 4.6, img: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400' },
-          { name: 'BBQ Chicken Pizza', price: '$25', rating: 4.7, img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400' },
-          { name: 'Veggie Supreme Pizza', price: '$22', rating: 4.5, img: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400' },
-          { name: 'Paneer Butter Masala', price: '$20', rating: 4.8, img: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400' },
-          { name: 'Butter Naan Combo', price: '$16', rating: 4.4, img: 'https://images.unsplash.com/photo-1627308595171-d1b5d71e8cfd?w=400' },
-          { name: 'Chicken Tikka', price: '$24', rating: 4.7, img: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400' },
-          { name: 'Mutton Biryani', price: '$27', rating: 4.9, img: 'https://images.unsplash.com/photo-1701579231305-d84d8af9a3fd?w=400' },
-          { name: 'Veg Biryani', price: '$19', rating: 4.5, img: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400' },
-          { name: 'Hyderabadi Dum Biryani', price: '$29', rating: 4.8, img: 'https://images.unsplash.com/photo-1642821373181-696a54913e93?w=400' },
-          { name: 'Chicken Shawarma', price: '$17', rating: 4.6, img: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400' },
-          { name: 'Falafel Wrap', price: '$15', rating: 4.4, img: 'https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=400' },
-          { name: 'Club Sandwich', price: '$14', rating: 4.3, img: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400' },
-          { name: 'Grilled Chicken Sandwich', price: '$18', rating: 4.6, img: 'https://images.unsplash.com/photo-1553909489-cd47e0ef937f?w=400' },
-          { name: 'French Fries Bucket', price: '$11', rating: 4.2, img: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400' },
-          { name: 'Cheese Nachos', price: '$13', rating: 4.5, img: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400' },
-          { name: 'Loaded Potato Wedges', price: '$12', rating: 4.4, img: 'https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400' },
-          { name: 'Classic Caesar Salad', price: '$15', rating: 4.3, img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400' },
-          { name: 'Greek Salad Bowl', price: '$16', rating: 4.5, img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400' },
-          { name: 'Quinoa Power Bowl', price: '$18', rating: 4.6, img: 'https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=400' },
-          { name: 'Tom Yum Soup', price: '$14', rating: 4.4, img: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400' },
-          { name: 'Cream of Mushroom Soup', price: '$13', rating: 4.3, img: 'https://images.unsplash.com/photo-1543353071-10c8ba85a904?w=400' },
-          { name: 'Hot and Sour Soup', price: '$12', rating: 4.2, img: 'https://images.unsplash.com/photo-1604908554007-58e52f06e74c?w=400' },
-          { name: 'Tacos Trio', price: '$19', rating: 4.6, img: 'https://images.unsplash.com/photo-1565299585323-38174c4a6fdd?w=400' },
-          { name: 'Chicken Quesadilla', price: '$20', rating: 4.7, img: 'https://images.unsplash.com/photo-1618040996337-56904b7850b9?w=400' },
-          { name: 'Beef Burrito Bowl', price: '$22', rating: 4.5, img: 'https://images.unsplash.com/photo-1534352956036-cd81e27dd615?w=400' },
-          { name: 'Ramen Bowl', price: '$21', rating: 4.8, img: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400' },
-          { name: 'Udon Noodles', price: '$19', rating: 4.5, img: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=400' },
-          { name: 'Hakka Noodles', price: '$17', rating: 4.4, img: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400' },
-          { name: 'Chicken Fried Rice', price: '$18', rating: 4.6, img: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400' },
-          { name: 'Veg Fried Rice', price: '$16', rating: 4.3, img: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400' },
-          { name: 'Prawn Tempura', price: '$26', rating: 4.7, img: 'https://images.unsplash.com/photo-1625944525903-bb2f7f4d4f63?w=400' },
-          { name: 'Fish and Chips', price: '$23', rating: 4.5, img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
-          { name: 'Steak Platter', price: '$38', rating: 4.9, img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
-          { name: 'Grilled Prawns', price: '$30', rating: 4.8, img: 'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400' },
-          { name: 'Blueberry Cheesecake', price: '$12', rating: 4.6, img: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400' },
-          { name: 'Tiramisu', price: '$13', rating: 4.7, img: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400' },
-          { name: 'Strawberry Sundae', price: '$10', rating: 4.4, img: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400' },
-          { name: 'Mango Smoothie', price: '$9', rating: 4.5, img: 'https://images.unsplash.com/photo-1553531384-cc64ac80f931?w=400' },
-          { name: 'Cold Coffee Frappe', price: '$8', rating: 4.3, img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400' },
-          { name: 'Fresh Lime Soda', price: '$7', rating: 4.2, img: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=400' },
-        ].map(item => (
-          <div className="menu-card" key={item.name}>
-            <img src={item.img} alt={item.name} className="menu-card-img" />
-            <div className="menu-card-body">
-              <h4>{item.name}</h4>
-              <div className="menu-card-meta">
-                <span className="menu-price">{item.price}</span>
-                <span className="menu-rating">⭐ {item.rating}</span>
+  const renderFavoriteMenu = () => {
+    const favoriteSet = new Set(favoriteFoodIds);
+    const menuItems = [
+      { name: 'Truffle Mac & Cheese', price: '$24', rating: 4.9, img: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=400' },
+      { name: 'Grilled Salmon', price: '$32', rating: 4.8, img: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400' },
+      { name: 'Wagyu Burger', price: '$28', rating: 4.7, img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400' },
+      { name: 'Avocado Toast', price: '$18', rating: 4.5, img: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400' },
+      { name: 'Chicken Alfredo', price: '$26', rating: 4.8, img: 'https://images.unsplash.com/photo-1555949258-eb67b1ef0ceb?w=400' },
+      { name: 'Margherita Pizza', price: '$21', rating: 4.6, img: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=400' },
+      { name: 'Sushi Platter', price: '$34', rating: 4.9, img: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=400' },
+      { name: 'Chocolate Lava Cake', price: '$14', rating: 4.7, img: 'https://images.unsplash.com/photo-1614707267537-b85aaf00c4b7?w=400' },
+      { name: 'Pesto Pasta', price: '$23', rating: 4.6, img: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=400' },
+      { name: 'BBQ Chicken Pizza', price: '$25', rating: 4.7, img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400' },
+      { name: 'Veggie Supreme Pizza', price: '$22', rating: 4.5, img: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400' },
+      { name: 'Paneer Butter Masala', price: '$20', rating: 4.8, img: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400' },
+      { name: 'Butter Naan Combo', price: '$16', rating: 4.4, img: 'https://images.unsplash.com/photo-1627308595171-d1b5d71e8cfd?w=400' },
+      { name: 'Chicken Tikka', price: '$24', rating: 4.7, img: 'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=400' },
+      { name: 'Mutton Biryani', price: '$27', rating: 4.9, img: 'https://images.unsplash.com/photo-1701579231305-d84d8af9a3fd?w=400' },
+      { name: 'Veg Biryani', price: '$19', rating: 4.5, img: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=400' },
+      { name: 'Hyderabadi Dum Biryani', price: '$29', rating: 4.8, img: 'https://images.unsplash.com/photo-1642821373181-696a54913e93?w=400' },
+      { name: 'Chicken Shawarma', price: '$17', rating: 4.6, img: 'https://images.unsplash.com/photo-1529006557810-274b9b2fc783?w=400' },
+      { name: 'Falafel Wrap', price: '$15', rating: 4.4, img: 'https://images.unsplash.com/photo-1562967916-eb82221dfb92?w=400' },
+      { name: 'Club Sandwich', price: '$14', rating: 4.3, img: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=400' },
+      { name: 'Grilled Chicken Sandwich', price: '$18', rating: 4.6, img: 'https://images.unsplash.com/photo-1553909489-cd47e0ef937f?w=400' },
+      { name: 'French Fries Bucket', price: '$11', rating: 4.2, img: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=400' },
+      { name: 'Cheese Nachos', price: '$13', rating: 4.5, img: 'https://images.unsplash.com/photo-1513456852971-30c0b8199d4d?w=400' },
+      { name: 'Loaded Potato Wedges', price: '$12', rating: 4.4, img: 'https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=400' },
+      { name: 'Classic Caesar Salad', price: '$15', rating: 4.3, img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400' },
+      { name: 'Greek Salad Bowl', price: '$16', rating: 4.5, img: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400' },
+      { name: 'Quinoa Power Bowl', price: '$18', rating: 4.6, img: 'https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=400' },
+      { name: 'Tom Yum Soup', price: '$14', rating: 4.4, img: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=400' },
+      { name: 'Cream of Mushroom Soup', price: '$13', rating: 4.3, img: 'https://images.unsplash.com/photo-1543353071-10c8ba85a904?w=400' },
+      { name: 'Hot and Sour Soup', price: '$12', rating: 4.2, img: 'https://images.unsplash.com/photo-1604908554007-58e52f06e74c?w=400' },
+      { name: 'Tacos Trio', price: '$19', rating: 4.6, img: 'https://images.unsplash.com/photo-1565299585323-38174c4a6fdd?w=400' },
+      { name: 'Chicken Quesadilla', price: '$20', rating: 4.7, img: 'https://images.unsplash.com/photo-1618040996337-56904b7850b9?w=400' },
+      { name: 'Beef Burrito Bowl', price: '$22', rating: 4.5, img: 'https://images.unsplash.com/photo-1534352956036-cd81e27dd615?w=400' },
+      { name: 'Ramen Bowl', price: '$21', rating: 4.8, img: 'https://images.unsplash.com/photo-1557872943-16a5ac26437e?w=400' },
+      { name: 'Udon Noodles', price: '$19', rating: 4.5, img: 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=400' },
+      { name: 'Hakka Noodles', price: '$17', rating: 4.4, img: 'https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400' },
+      { name: 'Chicken Fried Rice', price: '$18', rating: 4.6, img: 'https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400' },
+      { name: 'Veg Fried Rice', price: '$16', rating: 4.3, img: 'https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400' },
+      { name: 'Prawn Tempura', price: '$26', rating: 4.7, img: 'https://images.unsplash.com/photo-1625944525903-bb2f7f4d4f63?w=400' },
+      { name: 'Fish and Chips', price: '$23', rating: 4.5, img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+      { name: 'Steak Platter', price: '$38', rating: 4.9, img: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=400' },
+      { name: 'Grilled Prawns', price: '$30', rating: 4.8, img: 'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=400' },
+      { name: 'Blueberry Cheesecake', price: '$12', rating: 4.6, img: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?w=400' },
+      { name: 'Tiramisu', price: '$13', rating: 4.7, img: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400' },
+      { name: 'Strawberry Sundae', price: '$10', rating: 4.4, img: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=400' },
+      { name: 'Mango Smoothie', price: '$9', rating: 4.5, img: 'https://images.unsplash.com/photo-1553531384-cc64ac80f931?w=400' },
+      { name: 'Cold Coffee Frappe', price: '$8', rating: 4.3, img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400' },
+      { name: 'Fresh Lime Soda', price: '$7', rating: 4.2, img: 'https://images.unsplash.com/photo-1621263764928-df1444c5e859?w=400' },
+    ];
+
+    return (
+      <div className="adm-view-container">
+        <div className="menu-favorites-meta">
+          <span>{favoritesLoading ? 'Loading favorites...' : `${favoriteFoodIds.length} favorites saved`}</span>
+        </div>
+        <div className="menu-grid">
+          {menuItems.map((item, index) => {
+            const foodId = index + 1;
+            const isFavorite = favoriteSet.has(foodId);
+            const isBusy = favoriteActionId === foodId;
+
+            return (
+              <div className={`menu-card ${isFavorite ? 'favorited' : ''}`} key={item.name}>
+                <div className="menu-card-image-wrap">
+                  <img src={item.img} alt={item.name} className="menu-card-img" />
+                  <button
+                    type="button"
+                    className={`menu-fav-btn ${isFavorite ? 'active' : ''}`}
+                    onClick={() => toggleFavorite(foodId, isFavorite)}
+                    disabled={isBusy}
+                    aria-label={isFavorite ? `Remove ${item.name} from favorites` : `Add ${item.name} to favorites`}
+                    title={isFavorite ? 'Unfavorite' : 'Favorite'}
+                  >
+                    {isFavorite ? <span aria-hidden="true">&#10084;</span> : <span aria-hidden="true">&#9825;</span>}
+                  </button>
+                </div>
+                <div className="menu-card-body">
+                  <h4>{item.name}</h4>
+                  <div className="menu-card-meta">
+                    <span className="menu-price">{item.price}</span>
+                    <span className="menu-rating">&#9733; {item.rating}</span>
+                  </div>
+                  {isFavorite && (
+                    <button
+                      type="button"
+                      className="menu-unfavorite-btn"
+                      onClick={() => toggleFavorite(foodId, true)}
+                      disabled={isBusy}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderMessages = () => (
     <div className="adm-view-container">
@@ -547,10 +707,30 @@ export default function AdminDashboard() {
       </section>
 
       <section className="recent-feedback-section">
-        <h2 className="section-title">Recent Feedback</h2>
+        <div className="feedback-section-header">
+          <div>
+            <h2 className="section-title mb-0">
+              {selectedBrand ? `${selectedBrand.name} Feedback` : 'Recent Feedback'}
+            </h2>
+            {selectedBrand && (
+              <p className="feedback-section-subtitle">
+                Selected brand data mattum inga kaamikkudhu.
+              </p>
+            )}
+          </div>
+          {selectedBrand && (
+            <button
+              type="button"
+              className="adm-refresh-btn"
+              onClick={() => setSelectedBrand(null)}
+            >
+              Clear Filter
+            </button>
+          )}
+        </div>
         <div className="feedback-grid">
-          {feedbackData.length > 0 ? (
-            feedbackData.map(fb => {
+          {visibleFeedback.length > 0 ? (
+            visibleFeedback.map(fb => {
               const isPositive = fb.rating >= 7;
               return (
                 <div key={fb.id} className={`feedback-card-premium ${isPositive ? 'positive' : 'negative'}`}>
@@ -567,12 +747,15 @@ export default function AdminDashboard() {
                   <div className="fb-rating">
                     {'★'.repeat(Math.ceil(fb.rating / 2))}{'☆'.repeat(5 - Math.ceil(fb.rating / 2))}
                   </div>
-                  <p className="fb-comment">"{fb.comment || 'No comment'}"</p>
+                  {fb.brandName && <span className="fb-brand-tag">{fb.brandName}</span>}
+                  <p className="fb-comment">"{fb.displayComment || 'No comment'}"</p>
                 </div>
               );
             })
           ) : (
-            <p className="text-muted">No feedback yet.</p>
+            <p className="text-muted">
+              {selectedBrand ? `No feedback yet for ${selectedBrand.name}.` : 'No feedback yet.'}
+            </p>
           )}
         </div>
       </section>
@@ -582,6 +765,7 @@ export default function AdminDashboard() {
   const renderCurrentView = () => {
     switch (activeNav) {
       case 'home': return renderHome();
+      case 'brands': return renderBrands();
       case 'food': return renderFoodOrders();
       case 'fav': return renderFavoriteMenu();
       case 'msg': return renderMessages();
@@ -593,10 +777,22 @@ export default function AdminDashboard() {
   };
 
   return (
+    activeNav === 'brands' ? (
+      <div className={`adm-layout adm-front-layout ${theme === 'dark' ? 'adm-dark' : ''}`}>
+        {renderBrands()}
+      </div>
+    ) : (
     <div className={`adm-layout ${theme === 'dark' ? 'adm-dark' : ''}`}>
       {/* ── Sidebar ── */}
       <aside className="adm-sidebar">
-        <div className="adm-logo" onClick={() => setActiveNav('home')} style={{ cursor: 'pointer' }}>
+        <div
+          className="adm-logo"
+          onClick={() => {
+            setActiveNav('home');
+            navigate('/admin-dashboard');
+          }}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="adm-logo-icon">
             <img src={cateringLogo} alt="Catering logo" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
           </div>
@@ -640,5 +836,7 @@ export default function AdminDashboard() {
         {renderCurrentView()}
       </main>
     </div>
+    )
   );
 }
+

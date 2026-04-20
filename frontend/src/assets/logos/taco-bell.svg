@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <rect width="220" height="220" rx="36" fill="#ffffff"/>
+  <path d="M72 44c28 0 56 14 56 42 0 16-10 28-20 40 20 0 36-12 46-26-2 38-32 66-74 66-22 0-40-8-52-22 15 5 30 4 42-2-10-14-16-30-16-46 0-30 20-52 18-52z" fill="#7027a0"/>
+  <path d="M96 92c22 0 38 14 46 34-14-6-26-8-38-8-14 0-30 4-46 14 10-24 24-40 38-40z" fill="#ffffff"/>
+  <text x="110" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="700" fill="#111">TACO BELL</text>
+</svg>

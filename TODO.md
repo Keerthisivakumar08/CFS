@@ -1,12 +1,15 @@
-# Timeline Rating Fix Task
+# TODO: Add Venue Field to User Registration - ✅ COMPLETE
 
-## Steps
-1. ~~Understand dashboards~~
-2. Edit frontend/src/components/AdminFeedbackDashboard_NEW.js: 
-   - Filter feedback to March 2026 only.
-   - Change chart to show average rating for March (neutral color).
-3. Update sample data dates to 2026-Mar.
-4. Test.
-5. Complete.
+## Completed Steps:
+1. ✅ Updated database/schema.sql with venue column
+2. ✅ Updated backend/models/db.js (table CREATE, default data)
+3. ✅ Updated backend/routes/auth.js (register/login handle venue)
+4. ✅ Updated frontend/src/components/Register.js (state, form, submit)
+5. ✅ DB initialized via backend init
 
-**Current:** Editing NEW.js.
+**Test Instructions:**
+- Restart backend: `cd backend && node server.js`
+- Run frontend: `cd frontend && npm start`
+- Register new user with venue → login → check if venue in response/token
+
+Venue added to registration! Password handling unchanged (already secure).

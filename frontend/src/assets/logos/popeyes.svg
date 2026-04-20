@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <rect width="220" height="220" rx="36" fill="#ffffff"/>
+  <circle cx="110" cy="90" r="52" fill="#f58220"/>
+  <text x="110" y="102" text-anchor="middle" font-family="Arial, sans-serif" font-size="54" font-weight="700" fill="#ffffff">P</text>
+  <text x="110" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#f58220">Popeyes</text>
+</svg>

@@ -21,7 +21,9 @@
 .adm-layout {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-light);
+  background:
+    linear-gradient(rgba(10, 10, 12, 0.66), rgba(10, 10, 12, 0.66)),
+    url('https://images.unsplash.com/photo-1561758033-d89a9ad46330?auto=format&fit=crop&w=1800&q=80') center/cover fixed;
   font-family: 'Outfit', sans-serif;
 }
 
@@ -528,15 +530,32 @@
   gap: 20px;
 }
 
+.menu-favorites-meta {
+  margin-bottom: 14px;
+  color: #f8f9fa;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .menu-card {
   background: var(--white);
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0,0,0,0.02);
   transition: transform 0.2s;
+  border: 1px solid transparent;
 }
 
 .menu-card:hover { transform: translateY(-5px); }
+
+.menu-card.favorited {
+  border-color: #ef4f7f;
+  box-shadow: 0 10px 24px rgba(239, 79, 127, 0.18);
+}
+
+.menu-card-image-wrap {
+  position: relative;
+}
 
 .menu-card-img {
   width: 100%;
@@ -565,6 +584,47 @@
 .menu-rating {
   font-size: 0.8rem;
   color: #ff9800;
+}
+
+.menu-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 1rem;
+}
+
+.menu-fav-btn.active {
+  background: #fff1f5;
+}
+
+.menu-fav-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.menu-unfavorite-btn {
+  margin-top: 10px;
+  border: 1px solid #ffd5e2;
+  background: #fff5f8;
+  color: #d6336c;
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.menu-unfavorite-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Chat */
@@ -694,4 +754,501 @@
   color: #adb5bd;
   margin-top: 8px;
   font-style: italic;
+}
+
+.feedback-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.feedback-section-subtitle {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.fb-brand-tag {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fff7e8;
+  color: #ad6800;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.admin-brand-section {
+  margin: 40px 0;
+  padding: 28px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.08);
+}
+
+.admin-brand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-brand-kicker {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef6ea;
+  color: var(--savory-green);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.admin-brand-title {
+  margin: 0 0 8px;
+  color: #1f2933;
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
+}
+
+.admin-brand-subtitle {
+  margin: 0;
+  max-width: 720px;
+  color: var(--text-muted);
+}
+
+.admin-brand-pill {
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.admin-brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 18px;
+}
+
+.admin-brand-card {
+  border: 1px solid #edf2f7;
+  border-radius: 22px;
+  background: #fff;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-brand-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--brand-accent);
+  box-shadow: 0 16px 32px color-mix(in srgb, var(--brand-accent) 18%, transparent);
+}
+
+.admin-brand-logo-wrap {
+  width: 92px;
+  height: 92px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #f8fafc, #eef2f7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.admin-brand-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.admin-brand-name {
+  color: #1f2933;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.adm-front-layout {
+  display: block;
+  min-height: 100vh;
+  padding: 0;
+}
+
+.admin-brand-front-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.admin-brand-front-panel {
+  width: 100%;
+  max-width: 1480px;
+  min-height: calc(100vh - 64px);
+  padding: 48px 40px;
+  border-radius: 32px;
+  background:
+    linear-gradient(rgba(8, 8, 8, 0.68), rgba(8, 8, 8, 0.72)),
+    url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80') center/cover;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.admin-brand-front-header {
+  text-align: center;
+  margin-bottom: 34px;
+}
+
+.admin-brand-front-title {
+  margin: 0 0 10px;
+  font-size: clamp(2rem, 3vw, 3rem);
+  font-weight: 700;
+  color: #fff;
+}
+
+.admin-brand-front-subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1rem;
+}
+
+.admin-brand-front-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.admin-brand-front-card {
+  border: 1px solid #e8ebf0;
+  border-radius: 24px;
+  min-height: 196px;
+  padding: 22px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-brand-front-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--brand-accent);
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.18);
+}
+
+.admin-brand-front-logo-wrap {
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-brand-front-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.admin-brand-front-name {
+  color: #111827;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.luxury-hotels-section {
+  margin: 40px 0;
+  padding: 32px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 215, 120, 0.18), transparent 30%),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.08), transparent 22%),
+    linear-gradient(135deg, #050505 0%, #111111 50%, #18120b 100%);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  position: relative;
+}
+
+.luxury-hotels-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 215, 130, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 215, 130, 0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.luxury-hotels-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.luxury-hotels-kicker {
+  display: inline-block;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 215, 130, 0.45);
+  border-radius: 999px;
+  color: #f1d28a;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  background: rgba(255, 215, 130, 0.08);
+}
+
+.luxury-hotels-title {
+  margin: 0 0 10px;
+  font-size: clamp(1.8rem, 2vw, 2.6rem);
+  color: #f6d487;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(255, 215, 130, 0.18);
+}
+
+.luxury-hotels-subtitle {
+  margin: 0;
+  max-width: 700px;
+  color: rgba(255, 247, 230, 0.72);
+  font-size: 0.98rem;
+}
+
+.luxury-hotels-orb {
+  min-width: 132px;
+  min-height: 132px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffe6a6;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+  border: 1px solid rgba(255, 215, 130, 0.4);
+  background:
+    radial-gradient(circle, rgba(255, 215, 130, 0.28) 0%, rgba(255, 215, 130, 0.07) 45%, transparent 70%),
+    rgba(255, 255, 255, 0.03);
+  box-shadow:
+    0 0 30px rgba(255, 215, 130, 0.22),
+    inset 0 0 18px rgba(255, 255, 255, 0.05);
+}
+
+.luxury-hotels-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+}
+
+.luxury-hotel-card {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(34, 34, 34, 0.96) 0%, rgba(13, 13, 13, 0.98) 100%);
+  border: 1px solid rgba(255, 215, 130, 0.22);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.luxury-hotel-card:hover {
+  transform: translateY(-8px);
+  box-shadow:
+    0 24px 42px rgba(0, 0, 0, 0.55),
+    0 0 22px rgba(255, 215, 130, 0.16);
+}
+
+.luxury-hotel-image-wrap {
+  position: relative;
+  height: 220px;
+}
+
+.luxury-hotel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.1) contrast(1.05);
+}
+
+.luxury-hotel-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.5) 100%),
+    linear-gradient(135deg, rgba(255, 215, 130, 0.2) 0%, transparent 45%);
+}
+
+.luxury-hotel-scanline {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 215, 130, 0.12) 50%, transparent 100%);
+  mix-blend-mode: screen;
+  opacity: 0.8;
+}
+
+.luxury-hotel-body {
+  padding: 18px 18px 20px;
+}
+
+.luxury-hotel-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.luxury-hotel-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #201508;
+  background: linear-gradient(135deg, #f8e2ab 0%, #c99b38 100%);
+  box-shadow: 0 8px 18px rgba(201, 155, 56, 0.28);
+}
+
+.luxury-hotel-badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #f6d487;
+  background: rgba(255, 215, 130, 0.08);
+  border: 1px solid rgba(255, 215, 130, 0.18);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.luxury-hotel-name {
+  margin: 0 0 10px;
+  color: #f6d487;
+  font-size: 1.18rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.luxury-hotel-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.luxury-hotel-stars {
+  color: #f5c45d;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 12px rgba(245, 196, 93, 0.26);
+}
+
+.luxury-hotel-rating {
+  color: #fff7e6;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 215, 130, 0.18);
+}
+
+@media (max-width: 1024px) {
+  .luxury-hotels-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-brand-header,
+  .feedback-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-brand-front-panel {
+    padding: 36px 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .luxury-hotels-section {
+    padding: 22px;
+  }
+
+  .luxury-hotels-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .luxury-hotels-orb {
+    min-width: 104px;
+    min-height: 104px;
+  }
+
+  .admin-brand-section {
+    padding: 22px;
+  }
+
+  .admin-brand-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-brand-front-shell {
+    padding: 16px;
+  }
+
+  .admin-brand-front-panel {
+    min-height: calc(100vh - 32px);
+    padding: 26px 16px;
+    border-radius: 24px;
+  }
+
+  .admin-brand-front-title {
+    font-size: 1.65rem;
+  }
+
+  .admin-brand-front-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .admin-brand-front-card {
+    min-height: 176px;
+    padding: 18px 12px;
+  }
+
+  .admin-brand-front-logo-wrap {
+    width: 88px;
+    height: 88px;
+  }
 }

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 220">
+  <rect width="220" height="220" rx="36" fill="#ffffff"/>
+  <rect x="36" y="30" width="148" height="160" rx="18" fill="#e4002b"/>
+  <rect x="76" y="42" width="68" height="136" rx="34" fill="#fff4db"/>
+  <circle cx="98" cy="92" r="8" fill="#111"/>
+  <circle cx="124" cy="92" r="8" fill="#111"/>
+  <path d="M88 120c10 8 34 8 44 0" stroke="#111" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M88 76c8-8 16-10 24-10 10 0 18 2 26 10" stroke="#111" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <text x="110" y="202" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#111">KFC</text>
+</svg>

@@ -5,6 +5,7 @@ CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
+  venue TEXT,
   role TEXT DEFAULT 'user' CHECK(role IN ('user', 'admin')),
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const clientRoutes = require('./routes/clients');
 const userRoutes = require('./routes/users');
 const feedbackRoutes = require('./routes/feedback');
+const favoriteRoutes = require('./routes/favorites');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -48,17 +50,16 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Initialize DB
-db.init();
-
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+db.init(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
 
 module.exports = app;

@@ -1,33 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
+import cateringLogo from '../assets/catering-logo.png';
 import './Login.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [loginType, setLoginType] = useState('user');
   const [error, setError] = useState('');
-  const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
   const { login } = useAuth();
-  const imagePaneRef = useRef(null);
-
-  const images = [
-    'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80',
-    'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80'
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % images.length);
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [images.length]);
 
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
@@ -37,12 +21,6 @@ export default function Login() {
     }
   }, []);
 
-  useEffect(() => {
-    if (imagePaneRef.current) {
-      imagePaneRef.current.style.backgroundImage = `linear-gradient(to bottom, rgba(82, 65, 138, 0.2) 0%, rgba(30, 25, 45, 0.8) 100%), url('${images[currentSlide]}')`;
-    }
-  }, [currentSlide, images]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -50,12 +28,6 @@ export default function Login() {
     try {
       const response = await api.post('/auth/login', { email, password });
       const { token, user: userData } = response.data;
-
-      // Validate selected login type matches actual role
-      if (loginType !== userData.role) {
-        setError(`Invalid credentials for ${loginType} login.`);
-        return;
-      }
 
       login(token, userData);
 
@@ -77,85 +49,98 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      <div className="split-card">
-        <div className="image-pane" ref={imagePaneRef}>
-          <div className="brand-name">CFMS</div>
-          <div className="image-content">
-            <h3 className="image-title">Client Feedback Management System</h3>
-            <p className="image-subtitle">Capturing Moments, Creating Memories</p>
-            <div className="slide-indicators">
-              {images.map((_, index) => (
-                <span
-                  key={index}
-                  className={`slide-indicator ${currentSlide === index ? 'active' : ''}`}
-                ></span>
-              ))}
+      <div className="login-shell">
+        <div className="showcase-pane">
+          <div className="showcase-brand">
+            <img src={cateringLogo} alt="Client system logo" className="showcase-logo" />
+            <div>
+              <p className="brand-kicker">food</p>
+              <h1 className="brand-title">Client Feedback System</h1>
             </div>
           </div>
+
+          <div className="showcase-copy">
+            <span className="copy-chip">Fresh feedback. Faster decisions.</span>
+            <h2>Smart client insights for your food service team.</h2>
+            <p>
+              Track customer experience, gather comments, and keep your service quality sharp
+              from one dashboard.
+            </p>
+          </div>
+
+          <div className="food-stage" aria-hidden="true">
+            <div className="plate plate-pizza"></div>
+            <div className="plate plate-burger"></div>
+            <div className="plate plate-fries"></div>
+            <div className="drink-cup"></div>
+          </div>
         </div>
-        
+
         <div className="form-pane">
-          <h2 className="form-title">Log in</h2>
-          <p className="sub-text">
-            Don't have an account? <Link to="/register">Register here</Link>
-          </p>
-          
+          <div className="login-panel">
+            <h2 className="form-title">Login</h2>
+            <p className="sub-text">
+              Sign in to continue managing client feedback.
+            </p>
+
           {error && <div className="auth-error">{error}</div>}
-          
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="email"
-              autoComplete="username"
-              className="form-control"
-              placeholder="Email or Username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            
-            <input
-              type="password"
-              name="password"
-              autoComplete="current-password"
-              className="form-control"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <div className="form-options mb-3">
-              <label className="remember-me">
-                <input 
-                  type="checkbox" 
-                  checked={rememberMe} 
-                  onChange={(e) => setRememberMe(e.target.checked)} 
-                />
-                <span className="ms-2">Remember me</span>
-              </label>
-            </div>
-            
-            <div className="form-actions">
-              <button
-                type="button"
-                className={`btn ${loginType === 'admin' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setLoginType('admin')}
-              >
-                Admin Login
+
+            <form onSubmit={handleSubmit}>
+              <label className="field-label" htmlFor="login-email">Email</label>
+              <input
+                id="login-email"
+                type="text"
+                name="email"
+                autoComplete="username"
+                className="form-control"
+                placeholder="username@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+
+              <label className="field-label" htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                name="password"
+                autoComplete="current-password"
+                className="form-control"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+
+              <div className="form-options">
+                <label className="remember-me">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <span>Remember me</span>
+                </label>
+                <span className="muted-link">Forgot Password?</span>
+              </div>
+
+              <button type="submit" className="btn-submit">
+                Sign in
               </button>
-              <button
-                type="button"
-                className={`btn ${loginType === 'user' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setLoginType('user')}
-              >
-                User Login
-              </button>
+            </form>
+
+            <div className="divider">or continue with</div>
+
+            <div className="social-row" aria-hidden="true">
+              <span className="social-chip">G</span>
+              <span className="social-chip">A</span>
+              <span className="social-chip">f</span>
             </div>
-            
-            <button type="submit" className="btn btn-primary btn-submit">
-              Log in
-            </button>
-          </form>
+
+            <p className="register-text">
+              Don&apos;t have an account yet? <Link to="/register">Register for free</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

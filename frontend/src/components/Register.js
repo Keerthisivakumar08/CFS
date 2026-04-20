@@ -4,8 +4,9 @@ import { Form, Button, Card, Alert, Container } from 'react-bootstrap';
 import api from '../api';
 
 export default function Register() {
-  const [email, setEmail] = useState('');
+const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [venue, setVenue] = useState('');
   const [role, setRole] = useState('user');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,7 +18,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      await api.post('/auth/register', { email, password, role });
+      await api.post('/auth/register', { email, password, venue, role });
       alert('Registration successful! Please login.');
       navigate('/login');
     } catch (err) {
@@ -44,7 +45,7 @@ export default function Register() {
                 required
               />
             </Form.Group>
-            <Form.Group className="mb-3">
+<Form.Group className="mb-3">
               <Form.Label>Password</Form.Label>
               <Form.Control
                 type="password"
@@ -52,6 +53,15 @@ export default function Register() {
                 onChange={(e) => setPassword(e.target.value)}
                 minLength={6}
                 required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Venue (optional)</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="e.g., Wedding Hall, Office"
+                value={venue}
+                onChange={(e) => setVenue(e.target.value)}
               />
             </Form.Group>
             <Form.Group className="mb-3">

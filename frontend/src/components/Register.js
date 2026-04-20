@@ -21,7 +21,13 @@ const [email, setEmail] = useState('');
 
     try {
       const response = await api.post('/auth/register', { email, password, venue, role });
-      const { token, user: userData } = response.data;
+      let { token, user: userData } = response.data;
+
+      if (!token || !userData) {
+        const loginResponse = await api.post('/auth/login', { email, password });
+        token = loginResponse.data.token;
+        userData = loginResponse.data.user;
+      }
 
       login(token, userData);
       navigate(userData.role === 'admin' ? '/admin-dashboard' : '/user-dashboard');
